@@ -401,7 +401,7 @@ mod_2 <- glm(ilive == "y" ~ ns(combgest, 2) * mager,
 fmodel(mod_2, ~ combgest + mager) 
 ```
 
-## Instructor
+## Instructor 
 
 Survival is very low for babies born at or before 21 weeks, very high near 38 weeks and still high but decreasing after 41 weeks. You can see the last part of this most easily in a table of numbers rather than a visualization, since the survival is still practically 
 ```{r}
