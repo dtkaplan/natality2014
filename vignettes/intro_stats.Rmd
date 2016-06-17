@@ -1,0 +1,427 @@
+---
+title: "Research Projects for Teaching Statistics"
+author: "Daniel Kaplan"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    code_folding: hide
+vignette: >
+  %\VignetteIndexEntry{Intro Stats}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r include = FALSE}
+library(natality2014)
+library(statisticalModeling)
+library(mosaic)
+```
+
+The `Natality_2014` package provides support for teaching introductory statistics. It contains information from each of the almost 4 million births registered in the US in 2014. These offer many diverse possibilities for framing research questions ranging from the very simple to the very complex, as well as opportunities to construct narrative and graphical reports. 
+
+This document describes some of the research questions that can be suitable for an introductory statistics class or a class on statistical modeling. The research questions are intentionally stated in a simple and general way and not in terms of the numerical result from a statistical procedure. This gives students a chance to explore an important aspect of research: reframing the question with more nuance to address not just the question but what motivates the question and what factors might be brought into play.
+
+We'll start with an example many parts of which are suitable for the very start of an introductory statistics course.
+
+# Introductory Example: Normal Gestation Period {.tabset .tabset-pills .tabset-fade}
+
+Research question: How long is a normal gestation? 
+
+This is a familiar topic and almost everyone will have a ready answer: 9 months. 
+
+## Guide
+
+1. Are data consistent with 9 months?
+2. When will *my* baby arrive?
+
+## Path One {.tabset}
+
+"OK. So you think it's nine months.  Here are some data. Are they consistent with that?"
+
+### Discussion
+
+How to answer this question? Put discussion notes here.
+
+### Some refinements
+
+1. The data are provided in units of weeks. What fraction of all gestations last exactly 36 weeks?
+2. What fraction of all gestations last approximately 36 weeks? What's a good definition of "approximately"?
+3. How can the data be used to tell us what "approximately" means?
+
+### Exploring One
+
+What fraction last exactly 36 weeks?
+
+```{r}
+tally( ~ combgest == 36, data = Natality_2014_1k)
+tally( ~ combgest == 36, data = Natality_2014_1k, format = "proportion")
+```
+* Result: only 3 percent. 
+    - Is the sample too small?  Try a larger sample! But that costs more!
+* Interpretation: Not many gestations end at 36 weeks.
+* Graphic: not much point. We just need the one number
+* Evaluation: Does this approach answer the question? No, 3% tells us nothing about "normal."
+
+### Exploring Two
+
+What fraction last approximately 36 weeks.
+
+* Let's define approximately to mean within one or two weeks.
+```{r}
+tally( ~ combgest %in% c(35, 36, 37), data = Natality_2014_1k, format = "proportion")
+tally( ~ combgest %in% c(34, 35, 36, 37, 38), data = Natality_2014_1k, format = "proportion")
+```
+* Result: About 1/3 of all gestations end somewhere within 34 to 38 weeks.
+    - What if we used $\pm$ 3 weeks?
+* Interpretation: "Normal" should be more than one-third.
+* Graphic: not much point. There's still just one number.
+* Evaluation: Does this approach answer the question? No, one-third is not exactly "normal."
+
+### Exploring Three
+
+Let the data tell us what approximately means.
+
+```{r}
+tally( ~ combgest, data = Natality_2014_1k)
+```
+
+We can see that 39 weeks is the most common length for gestation.
+
+- Look within 2 weeks of that:
+```{r}
+tally( ~ combgest %in% c(37, 38, 39, 40, 41), data = Natality_2014_1k, format = "proportion")
+```
+84% sounds like a good definition of normal.
+- Let's turn the question inside out: what are the bounds on an interval that contains, say, 80% of all births?
+```{r}
+qdata( ~ combgest, data = Natality_2014_1k, p = c(.10, .90))
+```
+
+* Result: Normal gestations are between 37 and 41 weeks.
+* Interpretation: 
+    - What if we used other definitions? Is the result about the same? 
+    - What are plausible numerical definitions of these everyday phrases: "the majority", "the large majority", "almost everybody"? 
+    ```{r}
+qdata( ~ combgest, data = Natality_2014_1k, p = c(.05, .95))
+qdata( ~ combgest, data = Natality_2014_1k, p = c(.025, .975))    
+```
+* Graphic: Remember it's an iterative process, where you successively add in or refine components to address shortcomings.
+```{r, message=FALSE, warning=FALSE}
+gf_density( ~ combgest + fill:"blue" + alpha:0.5, data = Natality_2014_1k) +
+  geom_vline(aes(xintercept = 35, color = "red")) +
+  geom_vline(aes(xintercept = 41, color = "red")) +
+  ggtitle("Defining normal") +
+  xlab("Gestation (weeks)") +
+  guides(color = FALSE)
+```
+
+* Questions prompted by the graphic?
+
+    - Why the bumps? Are they real? Deal with them by smoothing. Use the `bw` parameter. 0.7 will be reasonable, but try several.
+    - Why aren't the boundaries at the same "altitude?" Because the distribution is right skew. Maybe we should have defined normal to exclude equally unlikely values on both sides?
+* Evaluation: Does this approach answer the question? Pretty well, but the details of the answer depend on an arbitrary definition of the limits.
+
+
+
+## Path Two {.tabset}
+
+"When will *my* baby arrive?"
+
+### Some refinements:
+
+1. Give a general description from the whole population.
+2. "My" means literally about me. Customize the answer based on individual factors.
+3. Do pregnancies end after a natural time? How often is the duration determined by artificial factors such as medical intervention? If we separate these out those that end naturally, is the result different? Is it important to give an answer that includes reference to artificial induction of labor.
+
+### Exploring One
+
+See Path One.
+
+### Exploring Two {.tabset}
+
+Suppose I'm a 28-year old weighing 125 pounds before pregnancy. I'm pregnant with a baby girl?  How long will pregnancy last for me?
+
+##### One method: selecting matching cases:
+
+```{r}
+Natality_2014_100k %>%
+  filter(mager == 28, pwgt_r > 120, pwgt_r < 130, sex == "F") %>%
+  qdata( ~ combgest, data = ., p = c(.05, .95))
+```
+
+How reliable is this estimate? 
+- How many people is it based on?
+- What happens if we try it with more data?
+
+##### Another method: Building and evaluating a model of combgest
+
+```{r}
+gest_mod_1 <- lm(combgest ~ mager + pwgt_r + sex, data = Natality_2014_1k)
+me <- list(mager = 28, sex = "F", pwgt_r = 125)
+evaluate_model(gest_mod_1, at = me)
+```
+This gives us a central estimate. How much variation is there around this?
+
+Look at prediction error ...
+
+```{r}
+Preds <- evaluate_model(gest_mod_1, data = Natality_2014_1k)
+qdata( ~ I(combgest - model_output), data = Preds, p = c(.05, .95))
+```
+
+But do these variables really have a connection to gestation time?
+```{r}
+effect_size(gest_mod_1, ~ mager, at = me)
+effect_size(gest_mod_1, ~ pwgt_r, at = me)
+effect_size(gest_mod_1, ~ sex, at = me)
+```
+
+* Are these big or small?
+    - A 100-lb change in weight leads to a 0.27 increase in gestation --- small compared to other variation.
+    - A 10-year change in age, leads to a 0.05 increase in gestation --- very small
+    - Gestation for boys is .18 weeks shorter than for girls.
+* How precise are the estimates?
+    - e.g. can we distinguish effect from zero?
+
+```{r}
+BE <- ensemble(gest_mod_1, nreps = 100)
+effect_size(BE, ~ mager, at = me ) %>%
+  ggplot(aes(x = slope)) + geom_density() + ggtitle("Age and gestation")
+effect_size(BE, ~ pwgt_r, at = me ) %>%
+  ggplot(aes(x = slope)) + geom_density() + ggtitle("Weight and gestation")
+effect_size(BE, ~ sex, at = me ) %>%
+  ggplot(aes(x = change)) + geom_density() + ggtitle("Baby's sex and gestation")
+```
+
+### Exploring Three {.tabset}
+
+Many labors are induced artificially. 
+
+```{r}
+tally( ~ uop_induc, data = Natality_2014_1k)
+```
+
+When are such inductions undertaken?
+
+Each of these graphics highlights a different aspect of the story. Put them together to tell the story of when inductions are done. Try them with larger data sets e.g. `_10k` or `_100k` and see what details stem from the small data set used.
+
+
+```{r}
+gf_histogram( ~ combgest + fill:uop_induc + alpha:0.7 + position:"dodge", 
+              data = Natality_2014_1k) + 
+  scale_fill_discrete(guide_legend(title = "Labor induced")) + 
+  xlab("Gestation") 
+```
+
+```{r}
+gf_histogram( ~ combgest + fill:uop_induc + alpha:0.7 + position:"stack", 
+              data = Natality_2014_1k) +
+  scale_fill_discrete(guide_legend(title = "Labor induced")) + 
+  xlab("Gestation") 
+
+```
+
+```{r message=FALSE, warning = FALSE}
+gf_histogram( ~ combgest + fill:uop_induc + alpha:0.7 + position:"fill", 
+              data = Natality_2014_1k) + 
+  scale_fill_discrete(guide_legend(title = "Labor induced")) + 
+  xlab("Gestation") 
+```
+
+
+**********************
+
+# Does prenatal care improve outcomes?
+
+There are two variables that relate to prenatal care:
+
+* `precare` - the month when prenatal care started. (15 has a special meaning.)
+* `previs` - the number of prenatal care visits.
+
+There are several variables that might reasonably be used to measure outcome.
+
+* `apgar5` The [APGAR score](https://en.wikipedia.org/wiki/Apgar_score) at five minutes 
+* `dbwt` Baby's weight in grams
+* `ab_aven1` Whether the baby was put on a mechanical respirator immediately.
+* `ab_aven6` Whether the baby was still on a mechanical respirator at six hours.
+* `ab_seiz`, `ab_anti`, `ab_surf`, `ab_nicu` See the documentation for `Natality_2014_100k`.
+
+## Making an index of "outcome" {.tabset}
+
+### Introduction
+
+Using any of the variables above, or any others you think are relevant, construct an *index* of the birth outcome. You can do this by converting each variable to a score and adding up the scores. Aim that the total possible range for the scores is 10 points. (This is arbitrary, but convenient.)  The first step is to construct a table that turns each of the variables you will use into a simple numerical score, like this one for APGAR:
+
+APGAR | score
+------|-------
+8 and higher | 3
+6 to 7 | 2
+4 to 5 | 1
+less than 4 | 0
+
+As a matter of computer technique, here's a way to translate APGAR score according to the table:
+
+```{r}
+apgar_to_score <- function(apgar) {
+  (apgar >= 4) + (apgar >= 6) + (apgar >= 8)
+}
+```
+
+Make sure that each component of the score is justifiable. 
+
+### An example index
+
+We'll make a score by adding together twice the apgar score plus a weight score from 0 to 3, plus 1 if the baby was not transferred to the neonatal intensive care unit.
+
+```{r}
+nicu_to_score <- function(nicu) {
+  nicu == "n"
+}
+weight_to_score <- function(weight) {
+  (weight > 2700) + (weight > 2300) + (weight > 2000) + (weight > 1500)
+}
+```
+
+Here's a statement to create the score:
+```{r}
+For_analysis <-
+  Natality_2014_100k %>%
+  mutate(outcome_score = 2 + apgar_to_score(apgar5) + 
+           weight_to_score(dbwt) + nicu_to_score(ab_nicu))
+gf_counts( ~ outcome_score, data = For_analysis)
+tally( ~ outcome_score <= 7, data = For_analysis)
+```
+Data is missing for about 5% of babies.
+
+### Relationship of score to prenatal care {.tabset}
+
+#### A graphical approach
+
+```{r}
+ggplot(For_analysis, aes(x = precare, fill = outcome_score > 9)) +
+  geom_histogram(position = "fill")
+```
+
+#### A tabular approach
+
+```{r}
+tally(outcome_score >= 9 ~ precare, data = For_analysis, format = "proportion")
+
+```
+
+Mothers who had no prenatal care (that is, `precare == 15`) had babies much more likely to fall below 10.
+
+#### A modeling approach
+
+```{r}
+mod_1 <- lm(outcome_score ~ previs * precare, dat = For_analysis)
+summary(mod_1)
+```
+
+```{r}
+library(rpart)
+library(rpart.plot)
+mod_2 <- rpart(outcome_score ~ previs + precare + priorlive + mager, 
+               data = For_analysis, cp = 0.001)
+prp(mod_2, type = 3)
+fmodel(mod_2, ~ previs + precare)
+```
+
+
+
+**************************
+
+# Maternal outcome
+
+# Ratio of male to female births {.tabset}
+
+## Discussion
+
+* Should we calculate ratio or difference in probabilities? Does it matter? 
+* Is the ratio different from 1?
+* Does it depend on maternal factors such as age, weight, health?
+
+## Instructor notes
+
+The dominant theme here is that the ratio doesn't vary with any of the explanatory variables.
+
+Can be used with 
+
+* stratification, e.g. `mager >= 35`
+* lm
+* glm
+* rpart models don't get any traction here
+* regression table gives a quick answer
+
+## Calculating the ratio
+
+```{r}
+For_analysis <- Natality_2014_100k %>% mutate(male = 0 + (sex == "M"))
+mod_0 <- glm(male ~ 1, data = For_analysis, family = "binomial")
+mod_1 <- glm(male ~ mager, data = For_analysis, family = "binomial")
+mod_2 <- glm(male ~ mager + pwgt_r + urf_diab + fagecomb, 
+             data = For_analysis, family = "binomial")
+mod_3 <- glm(male ~ mager > 35, data = For_analysis)
+```
+
+
+**********************
+
+# Survival and gestation
+
+## Description
+
+Describe the probability of survival for babies as a function of gestation time.
+
+* How much data do you need to have?
+
+## Visualization
+
+```{r}
+ggplot(Natality_2014_100k, aes(x = combgest, fill = ilive)) + geom_bar()
+ggplot(Natality_2014_100k, aes(x = combgest, fill = ilive)) + geom_bar(position = "fill")
+```
+
+```{r}
+ggplot(Natality_2014_100k, aes(x = ilive, fill = as.factor(combgest))) + geom_bar(position = "fill")
+
+```
+## Instructor
+
+Survival is very low for babies born at or before 21 weeks, very high near 38 weeks and still high but decreasing after 41 weeks. You can see the last part of this most easily in a table of numbers rather than a visualization, since the survival is still practically 
+
+# Other models
+
+1. Cigarettes
+    - and baby health
+    - who quits smoking (education, pay, wic?)
+2. Plurality
+3. Morbidity
+    - risk factors for eclampsia, perineal rupture, historectomy
+4. Inheritance
+    - weight of baby vs weight, age, height of mother
+5. Home births
+    - who pays? 
+    - outcomes for mothers and baby
+6. Sex ratios
+    - number of previous children
+7. Gestation as a function of number of previous children
+8. Prenatal care as a function of `pay`, parity, age, race, education
+
+# Modeling Risk
+
+Research question: 
+
+# Meta stuff ...
+
+* it's of personal interest to at least half of all students at a post-secondary level.     
+* a setting that is broadly familiar but with many facets that will be new and unfamiliar to many students but where descriptions can easily be found on the internet
+* there are many variables, so careful selection is important
+* the data can be explored with samples whose size spans several orders of magnitude. Call 1k the study that costs $1000, 10k the study that costs $10,000, and 100k the study that costs $100,000. If you can get an answer with a small study, that's better!
+* simple sounding ideas, such as "health of the baby" or "risk factor," need to be thoughtfully defined. 
+* systematically missing data
+
+
+
+
