@@ -1,10 +1,18 @@
 #' A tabulation of births in the US in 2014
 #'
-#' The Centers for Disease Control collects data on all births registered in the US (50 states + DC). The
-#' data set \code{Natality_2014} contains entries for the full set of births, but keeping
-#' only a subset of variables related to potential risk factors and outcomes. The files
-#' described here are random subsets of \code{Natality_2014}, but the complete data are
-#' available via the instructions given in \code{Natality_2014_100k}.
+#' The Centers for Disease Control collects data on all births registered
+#' in the US (50 states + DC). The
+#' full data set, \code{Natality_2014}, contains entries for
+#' the full set of births keeping
+#' only a subset of variables related to potential risk factors and outcomes.
+#' \code{Natality_2014_100k}, \code{Natality_2014_10k}, \code{Natality_2014_1k} are random
+#' samples of
+#' size one-hundred thousand, ten thousand, and one thousand respectively
+#' and are provided
+#' automatically when the \code{natality2014} package is attached. A larger sample of one-million
+#' cases, \code{Natality_2014_1000k}, and the complete set of cases in \code{Natality_2014} are also provided by the
+#' package, but not through the usual \code{data()} interface. To access those large files,
+#' see the instructions given in \code{Larger_natality_data_files}.
 #'
 #' Variable names are the same as in the original CDC file.
 #'
@@ -23,8 +31,9 @@
 #' of one million cases
 #'
 #' @docType data
-#' @name Natality_2014_100k
+#' @name Natality_2014 data
 #' @usage data(Natality_2014_100k, package = "natality2014")
+#' @aliases Natality_2014_100k Natality_2014_10k Natality_2014_1k Natality_2014 Natality_2014_1000k
 #'
 #' @keywords datasets
 #'
@@ -78,7 +87,7 @@
 #'     \item{\code{priorterm}} {Number of terminations of pregnancy before this birth.}
 #'   }
 #'
-#' @seealso \code{Larger_natality_data_files}
+#' @seealso \code{\link{Larger_natality_data_files}}
 #'
 #' @examples
 #' table(Natality_2014_100k$ilive)
