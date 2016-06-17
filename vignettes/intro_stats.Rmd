@@ -385,11 +385,28 @@ ggplot(Natality_2014_100k, aes(x = combgest, fill = ilive)) + geom_bar(position 
 
 ```{r}
 ggplot(Natality_2014_100k, aes(x = ilive, fill = as.factor(combgest))) + geom_bar(position = "fill")
-
 ```
+
+## Modeling
+
+```{r}
+mod_1 <- glm(ilive == "y" ~ combgest * mager, 
+           data = Natality_2014_100k,
+           family = "binomial")
+fmodel(mod_1, ~ combgest + mager)
+library(splines)
+mod_2 <- glm(ilive == "y" ~ ns(combgest, 2) * mager,
+             data = Natality_2014_100k,
+             family = "binomial")
+fmodel(mod_2, ~ combgest + mager) 
+```
+
 ## Instructor
 
 Survival is very low for babies born at or before 21 weeks, very high near 38 weeks and still high but decreasing after 41 weeks. You can see the last part of this most easily in a table of numbers rather than a visualization, since the survival is still practically 
+```{r}
+tally(ilive ~ combgest, data = Natality_2014_100k, format = "proportion", useNA = "no")
+```
 
 # Other models
 
