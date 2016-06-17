@@ -1,4 +1,4 @@
-#' A tabulation of births in the US in 2014
+#' Medical info on each birth in the US in 2014
 #'
 #' The Centers for Disease Control collects data on all births registered
 #' in the US (50 states + DC). The
@@ -28,12 +28,12 @@
 #' in \code{Natality_2014_10k} are included in \code{Natality_2014_1k}, and so on.
 #' Larger data files are available by following the instructions in \code{Larger_natality_data_files}:
 #' \code{Natality_2014} with 3.99 million cases and \code{Natality_2014_1000k} with a random sample
-#' of one million cases
+#' of one million cases.
 #'
 #' @docType data
-#' @name Natality_2014 data
-#' @usage data(Natality_2014_100k, package = "natality2014")
-#' @aliases Natality_2014_100k Natality_2014_10k Natality_2014_1k Natality_2014 Natality_2014_1000k
+#' @name Natality_2014_100k
+# @usage data(Natality_2014_100k, package = "natality2014")
+#' @aliases Natality_2014_100k Natality_2014_10k Natality_2014_1k
 #'
 #' @keywords datasets
 #'

@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Danny Kaplan
 Maintainer: <kaplan@macalester.edu>
 Description: A selection of the CDC data, with some light recoding to self-document categorical variables. The package contains samples of the cases in the CDC data, but makes all the cases available.
-License: CC-BY
+License: MIT
 LazyData: TRUE
 RoxygenNote: 5.0.1
 Suggests: knitr,
